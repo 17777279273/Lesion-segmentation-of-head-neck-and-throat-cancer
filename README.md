@@ -28,3 +28,47 @@
 * 正负样本比例失衡。病灶的总体积以及包含病灶的切片较少，90例数据总共7000+的切片，只有1000左右的切片包含病灶，病灶面积远远少于正常组织和整张图像面积。
 
 ![](https://ai-studio-static-online.cdn.bcebos.com/ee0cf7a51be4476d970d172defec597e275c20ab0b464444b0dbec1580c14ae7)
+
+
+# **总体方案**
+
+## 数据预处理
+* 对3D增强CT图像进行窗宽窗位的校正并缩放了0到255，减少噪声；
+
+* 该数据集的数据每个nii文件的图像横断面只有48~130张切片，与肝脏CT数据平均几百张切片相比，该数据更适合采用2D分割，所以需要将3D 图像转存为2D图像；
+
+* 在转存为2D图像之前根据label数据和灰度值将nii图像进行阶段，否则负样本比例太高可能影响模型收敛；
+
+* 预留出十个左右的样本作为测试集，预测之后根据3D Dice系数判断模型的优化程度。
+
+## 模型搭建
+* 使用水平反转、高斯噪声等数据增强策略进行数据扩充。因为病灶面积太小，使用缩放的时候尽量放大。
+* 采用余弦退火学习率下降策略并配合AdamW进行训练能够较快地收敛。
+
+## 图形化预测小工具使用
+这个就得去看[吖查小哥哥](https://aistudio.baidu.com/aistudio/personalcenter/thirdview/181096)的[项目](https://aistudio.baidu.com/aistudio/projectdetail/2574999)啦，我就不多做解释了。
+
+# 二、数据预处理
+
+### 窗宽窗位校正
+
+![](https://ai-studio-static-online.cdn.bcebos.com/2cca0eb9615e45fbb63a0e1fc7b42288fd18482905ab493f8da81e73d2b5cf17)
+
+
+## 2.2 图像截断
+根据标注数据和灰度值阈值进行截断，去掉一些多余切片
+
+再次之前肯定得进行窗宽窗位的校正并且缩放到0-255，否则图像将是黑抹哒区的一片（当初进行归一化的图像分割出来的结果比没有进行归一化的图像分数更低，这就挺魔性的）
+
+![](https://ai-studio-static-online.cdn.bcebos.com/6c3a4d32a8c146d1b7efb5502097e88c1b069b95c44e4055bbd4fb5c03a8b388)
+
+
+## 2.3 将截断后的3D 数据根据Z轴切割转存为2D图像
+
+![](https://ai-studio-static-online.cdn.bcebos.com/f4143047517d4f62b1bf5f150703e13b4296fd03430d41af8fc2d4284520dcc8)
+
+
+# 三、模型介绍
+![](https://ai-studio-static-online.cdn.bcebos.com/507ad8a1546c436ca506c9b91b2019d664fa7a88735c45048b70558989090cde)
+
+细节方面请转到[【AI达人创造营第二期】作业四：头颈部咽喉癌病灶分割](https://aistudio.baidu.com/aistudio/projectdetail/3527063)
